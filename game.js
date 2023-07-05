@@ -1,75 +1,86 @@
-var buttonColours = ["red", "blue", "yellow", "green"];
+const colours = ["red", "blue", "yellow", "green"];
 
-var gamePattern = [];
-var userClickedPattern = [];
+let randomChoosenPattern = [];
+let userChoosenPattern = [];
 
-var started = false;
-var level = 0;
+const selectedColour = document.querySelectorAll(".btn");
+const title = document.getElementById("level-title");
 
-$(document).keydown(function () {
-    if (!started) {
-        $("#level-title").text("Level " + level);
-        nextSequence();
+let started = false;
+let level = 0;
+
+// Play animation and sound while keypress
+document.addEventListener("keydown", function(){
+    if(!started){
+        nextLevel();
         started = true;
     }
 });
 
-$(".btn").click(function () {
-    var userChoosenColour = $(this).attr("id");
-    userClickedPattern.push(userChoosenColour);
-    playSound(userChoosenColour);
-    animatePress(userChoosenColour);
-    checkAnswer(userClickedPattern.length - 1);
+// Play animation sound while click
+for (let i = 0; i < selectedColour.length; i++) {
+    selectedColour[i].addEventListener("click", function () {
+        const choosenColour = this.id;
+        userChoosenPattern.push(choosenColour);
+        buttonAnimate(choosenColour);
+        playSound(choosenColour);
+        checkAnswer(userChoosenPattern.length - 1);
+    });
 }
-);
 
-function checkAnswer(currentLevel) {
-    if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
-        console.log("succes");
-        if (gamePattern.length === userClickedPattern.length) {
-            setTimeout(function () {
-                nextSequence();
+// checkAnswer
+function checkAnswer(level){
+    if(randomChoosenPattern[level] === userChoosenPattern[level]){
+        if(randomChoosenPattern.length === userChoosenPattern.length){
+            setTimeout(() => {
+                nextLevel();
             }, 1000);
         }
-    } else {
-        playSound("wrong");
-        $("body").addClass("game-over");
-        $("#level-title").text("Game Over, Press any key to restart.");
-
-        setTimeout(function () {
-            $("body").removeClass("game-over");
+    }else{
+        title.innerHTML = "Game Over, Press any key to start again.";
+        document.body.classList.add("game-over");
+        setTimeout(() => {
+            document.body.classList.remove("game-over");
         }, 200);
-
-        startOver();
+        playSound("wrong");
+        gameover();
     }
 }
 
-function nextSequence() {
-    userClickedPattern = [];
+// nextLevel
+function nextLevel(){
+    userChoosenPattern = [];
     level++;
-    $("#level-title").text("Level " + level);
-    var randomNumber = Math.floor(Math.random() * 4);
-    var randomChoosenColour = buttonColours[randomNumber];
-    gamePattern.push(randomChoosenColour);
+    title.innerHTML = "Level " + level;
 
-    $("#" + randomChoosenColour).fadeIn(100).fadeOut(100).fadeIn(100);
-    playSound(randomChoosenColour);
+    const randomColour = colours[Math.floor(Math.random() * 4)];
+    randomChoosenPattern.push(randomColour);
+
+    randomChoosenPattern.forEach(function(eachItem, i){
+        setTimeout(() => {
+            buttonAnimate(eachItem);
+            playSound(eachItem);
+        }, i*500);
+    });
 }
 
-function animatePress(currentColour) {
-    $("." + currentColour).addClass("pressed");
-    setTimeout(function () {
-        $("." + currentColour).removeClass("pressed");
-    }, 100);
+// Button Animate While Press
+function buttonAnimate(colourName) {
+    document.getElementById(colourName).classList.add("pressed");
+    setTimeout(() => {
+        document.getElementById(colourName).classList.remove("pressed");
+    }, 200);
 }
 
-function playSound(name) {
-    var audio = new Audio("sounds/" + name + ".mp3");
+// Play sound while press
+function playSound(colourName) {
+    const audio = new Audio("sounds/" + colourName + ".mp3");
     audio.play();
 }
 
-function startOver() {
+// GameOver
+function gameover(){
     level = 0;
-    gamePattern = [];
     started = false;
+    randomChoosenPattern = [];
 }
